@@ -6,7 +6,6 @@ use lib <
 >;
 
 use IRC::Client;
-use ZofBot::Config;
 use ZofBot::Plugin::Twitter;
 
 class ZofBot::Info {
@@ -19,13 +18,6 @@ class ZofBot::Info {
 
     multi method irc-to-me ($ where /'bot' \s* 'snack'/) { "om nom nom nom"; }
 }
-#
-dd [ |(conf<
-    tweet-to
-    consumer-key  consumer-secret
-    access-token  access-token-secret
->:p) ];
-
 
 .run with IRC::Client.new:
     :nick<ZofBot>,
@@ -38,11 +30,5 @@ dd [ |(conf<
     :debug,
     :plugins(
         ZofBot::Info.new,
-        ZofBot::Plugin::Twitter.new(
-            |(%(conf<
-                tweet-to
-                consumer-key  consumer-secret
-                access-token  access-token-secret
-            >:p))
-        ),
+        ZofBot::Plugin::Twitter.new,
     );
