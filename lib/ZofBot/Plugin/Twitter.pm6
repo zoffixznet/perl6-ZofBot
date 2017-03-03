@@ -9,9 +9,12 @@ has Str $.access-token-secret;
 has $!twitter = Twitter.new: :$!consumer-key, :$!consumer-secret,
                              :$!access-token, :$!access-token-secret;
 
-my $mention-of-zoffix = rx:i/«[ zoffix | IOninja | brokenchicken ]»/;
+subset ZoffixMention where {
+    $_ ~~ m:i/«[ zoffix | IOninja | brokenchicken ]»/
+    and .nick ne 'Geth'
+}
 
-method irc-privmsg-channel ($e where $mention-of-zoffix) {
+method irc-privmsg-channel (ZoffixMention $e) {
     my $text = "<{$e.nick}> $e";
     say "Tweeting `$text`";
     $!twitter.direct-message: $text, :name($!tweet-to);
