@@ -9,10 +9,12 @@ has Twitter $!twitter     .= new:
 my SetHash $ignore-list  .= new: |conf<ignore-list>;
 my SetHash $admin-list   .= new: |conf<admin-list>;
 my Bool:D  $is-tweeting   = True;
+my Instant $seen         .= from-posix: 0;
 my Regex   $mention-regex = rx:i/«[ zoffix | IOninja | brokenchicken ]»/;
 subset AdminMessage where {.host ∈ $admin-list};
 subset ZoffixMention where {
     $is-tweeting
+    and now - $seen > 10*60
     and $_ ~~ $mention-regex
     and .nick ∉ $ignore-list;
 }
@@ -20,12 +22,8 @@ subset ZoffixMention where {
 multi method irc-privmsg-channel (
     $ where {$is-tweeting and .nick ~~ /^ <$mention-regex> $/}
 ) {
-    say "Saw target speak. Turning off Twitter relay";
-    $is-tweeting = False;
-    Promise.in(10*60).then: {
-        say "Target watch timer expired. Re-enabling Twitter relay";
-        $is-tweeting = True;
-    }
+    say "[{DateTime.now}] Saw target speak. Turning off Twitter relay";
+    $seen = now;
     Nil;
 }
 
@@ -50,6 +48,7 @@ multi method irc-to-me (AdminMessage $ where /«unignore \s+ $<who>=\S+/) {
 
 multi method irc-to-me (AdminMessage $ where /«start»/) {
     $is-tweeting = True;
+    $seen = Instant.from-posix: 0;
     'Turned on Twitter relay';
 }
 
