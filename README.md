@@ -1,2 +1,7 @@
-# perl6-buggable
-robot to interface with the Perl 6's RT queue
+# ZofBot
+
+The bot who replaced Zoffix.
+
+----
+
+Also, an IRC-to-Twitter-DM relay
