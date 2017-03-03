@@ -1,4 +1,4 @@
-unit class Buggable::UA;
+unit class ZofBot::UA;
 
 use JSON::Fast;
 use HTTP::UserAgent;

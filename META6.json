@@ -1,8 +1,8 @@
 {
     "perl"         : "6.c",
-    "name"         : "buggable",
+    "name"         : "ZofBot",
     "version"      : "1.001001",
-    "description"  : "Helper bot for Perl 6 development",
+    "description"  : "A bot to replace Zoffix",
     "depends"      : [
         "IRC::Client",
         "JSON::Fast",
