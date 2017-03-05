@@ -20,7 +20,10 @@ subset ZoffixMention where {
 }
 
 multi method irc-privmsg-channel (
-    $ where {$is-tweeting and .nick ~~ /^ <$mention-regex> $/}
+    $ where {
+        $is-tweeting and .nick ~~ /^ <$mention-regex> $/
+        and .channel ne '#zofbot'
+    }
 ) {
     say "[{DateTime.now}] Saw target speak. Turning off Twitter relay";
     $seen = now;
