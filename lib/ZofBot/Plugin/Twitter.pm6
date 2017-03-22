@@ -10,7 +10,12 @@ my SetHash $ignore-list  .= new: |conf<ignore-list>;
 my SetHash $admin-list   .= new: |conf<admin-list>;
 my Bool:D  $is-tweeting   = True;
 my Instant $seen         .= from-posix: 0;
-my Regex   $mention-regex = rx:i/«[ zoffix | IOninja | brokenchicken ]»/;
+my Regex   $mention-regex = rx:i/«[
+    | zoffix        | zoffix_        | zoffix__        | zoffix___
+    | IOninja       | IOninja_       | IOninja__       | IOninja___
+    | brokenchicken | brokenchicken_ | brokenchicken__ | brokenchicken___
+]»/;
+
 subset AdminMessage where {.host ∈ $admin-list};
 subset ZoffixMention where {
     $is-tweeting
