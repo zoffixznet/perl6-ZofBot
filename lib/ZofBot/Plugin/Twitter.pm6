@@ -19,7 +19,7 @@ my Regex   $mention-regex = rx:i/«[
 subset AdminMessage where {.host ∈ $admin-list};
 subset ZoffixMention where {
     $is-tweeting
-    and now - $seen > 10*60
+    and (now - $seen > 10*60 or (.?channel||'') eq '#perl6')
     and $_ ~~ $mention-regex
     and .nick ∉ $ignore-list;
 }
