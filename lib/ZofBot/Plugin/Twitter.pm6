@@ -64,3 +64,11 @@ multi method irc-to-me (AdminMessage $ where /«stop»/) {
     $is-tweeting = False;
     'Turned off Twitter relay';
 }
+
+multi method irc-privmsg-channel (
+    AdminMessage $e where /^"\x[1]ACTION" \s+ '&'/
+) {
+    $is-tweeting = True;
+    $seen = Instant.from-posix: 0;
+    $e.reply: 'Turned on Twitter relay', :where($e.nick);
+}
