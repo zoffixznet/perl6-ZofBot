@@ -42,18 +42,6 @@ multi method irc-privmsg-channel (ZoffixMention $e) {
     Nil;
 }
 
-multi method irc-to-me (AdminMessage $ where /«ignore \s+ $<who>=\S+/) {
-    ~$<who> ∈ $ignore-list and return "$<who> is already ignored";
-    $ignore-list{~$<who>}++;
-    "Placed $<who> on ignore list";
-}
-
-multi method irc-to-me (AdminMessage $ where /«unignore \s+ $<who>=\S+/) {
-    ~$<who> ∉ $ignore-list and return "$<who> is not being ignored";
-    $ignore-list{~$<who>}--;
-    "Removed $<who> from ignore list";
-}
-
 multi method irc-to-me (AdminMessage $ where /«start»/) {
     $is-tweeting = True;
     $seen = Instant.from-posix: 0;
