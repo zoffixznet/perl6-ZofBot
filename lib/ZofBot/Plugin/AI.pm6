@@ -10,7 +10,7 @@ constant $Brain = do with Text::Markov.new(:4order) -> $b {
 
 multi method irc-to-me ($e) {
     feed-brain $e.text;
-    $Brain.read.substr: 0, 300;
+    $Brain.read.substr(0, 300).subst: :g, /\s+/, ' ';
 }
 
 multi method irc-privmsg-channel ($e) {
