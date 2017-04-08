@@ -3,7 +3,7 @@ use ZofBot::Config;
 use Text::Markov;
 
 my $Brain-File = conf<brain>.IO;
-my $Brain = do with Text::Markov.new -> $b {
+my $Brain = do with Text::Markov.new(:10order) -> $b {
     $b.feed: $_ for $Brain-File.slurp.split: '.', :skip-empty;
     $b
 }
