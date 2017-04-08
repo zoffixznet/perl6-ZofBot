@@ -2,8 +2,8 @@ unit class ZofBot::Plugin::AI;
 use ZofBot::Config;
 use Text::Markov;
 
-constant $Brain-File = conf<brain>.IO;
-constant $Brain = do with Text::Markov.new -> $b {
+my $Brain-File = conf<brain>.IO;
+my $Brain = do with Text::Markov.new -> $b {
     $b.feed: $_ for $Brain-File.slurp.split: '.', :skip-empty;
     $b
 }
