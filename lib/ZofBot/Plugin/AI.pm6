@@ -8,13 +8,14 @@ constant $Brain = do with Text::Markov.new(:4order) -> $b {
     $b
 }
 
-multi method irc-addressed ($e) {
+multi method irc-addressed ($e where .channel eq '#perl6-dev') {
     feed-brain $e.text;
     $Brain.read.substr(0, 300).subst: :g, /\s+/, ' ';
 }
 
-multi method irc-privmsg-channel ($e) {
+multi method irc-privmsg-channel ($e where .channel eq '#perl6-dev') {
     feed-brain $e.text
+    Nil;
 }
 
 sub feed-brain ($text) {
