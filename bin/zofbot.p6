@@ -6,6 +6,7 @@ use lib <
 >;
 
 use IRC::Client;
+use ZofBot::Plugin::AI;
 use ZofBot::Plugin::IgnoreList;
 use ZofBot::Plugin::Twitter;
 
@@ -33,4 +34,5 @@ class ZofBot::Info {
         ZofBot::Plugin::IgnoreList.new,
         ZofBot::Info.new,
         ZofBot::Plugin::Twitter.new,
+        ZofBot::Plugin::AI.new,
     );
