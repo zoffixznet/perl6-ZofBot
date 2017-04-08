@@ -14,7 +14,7 @@ multi method irc-addressed ($e where .channel eq '#perl6-dev') {
 }
 
 multi method irc-privmsg-channel ($e where .channel eq '#perl6-dev') {
-    feed-brain $e.text
+    feed-brain $e.text;
     Nil;
 }
 
