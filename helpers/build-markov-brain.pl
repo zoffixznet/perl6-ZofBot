@@ -20,7 +20,7 @@ for my $url (@urls) {
     my @words = $mech->text =~ /[^\s()\[\]]{1,30}/g;
     $brain .=  join "\n", map "$_.", split /\.+\s*/, join ' ',
         grep { /^\d+\.?$/ or /^[a-zA-Z]+\.?$/ }
-            split ' ', map { s/([a-z])([A-Z])/$1 $2/gr } @words
+            split ' ', join ' ', map { s/([a-z])([A-Z])/$1 $2/gr } @words;
 }
 
 path('brain.txt')->spurt(encode 'utf8', $brain);
