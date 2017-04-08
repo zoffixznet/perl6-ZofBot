@@ -8,7 +8,7 @@ constant $Brain = do with Text::Markov.new(:4order) -> $b {
     $b
 }
 
-multi method irc-to-me ($e) {
+multi method irc-addressed ($e) {
     feed-brain $e.text;
     $Brain.read.substr(0, 300).subst: :g, /\s+/, ' ';
 }
