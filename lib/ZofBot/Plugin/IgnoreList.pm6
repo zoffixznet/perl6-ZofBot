@@ -4,7 +4,10 @@ use ZofBot::Config;
 my SetHash $ignore-list  .= new: |conf<ignore-list>;
 my Set     $admin-list   .= new: |conf<admin-list>;
 subset AdminMessage where { .host ∈ $admin-list  }
-subset Ignored      where { .nick ∈ $ignore-list }
+subset Ignored      where {
+    .nick ∈ $ignore-list
+    or .text.starts-with: any <m: u: c: bisect: commit:>
+}
 
 multi method irc-to-me           (Ignored) {}
 multi method irc-privmsg-channel (Ignored) {}
