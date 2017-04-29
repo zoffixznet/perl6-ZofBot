@@ -7,6 +7,7 @@ subset AdminMessage where { .host ∈ $admin-list  }
 subset Ignored      where {
     .nick ∈ $ignore-list
     or .text.starts-with: any <m: u: c: bisect: commit:>
+    or .channel eq '#zofbot'
 }
 
 multi method irc-to-me           (Ignored) {}
