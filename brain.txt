@@ -38428,3 +38428,34 @@ rakudo-moar 6ef2ab: OUTPUT: «closed␤closed␤»
 s: &say, \(class A { method gist { 42 } }.new)
 rock it with me \o/ https://www.youtube.com/watch?v=09U69zGLXwE
 learn to play an instrument, you bum.
+does any of :ratchet, :sigspace, :ignorecase, :ignoremark or :dba allow a number argument?
+if none of them allow it, I'll remove this anti-feature
+Zoffix: I forgot about :1 and :0 :(
+timotimo++ # trisectable XD
+Zoffix++ # perseverance :)
+AlexDaniel: i'm the master of names :)
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=130798
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=130798
+Working on in-process precompilation again. Seems like the break was actually helpful, as while trying to find out where I left off, I realized that my issue is not objects leaking into the precompilation, but objects leaking out.
+oh, interesting!
+This means that when I get an error during precompilation, I just have to try again and it will get further as it can use the already precompiled files.
+Intriguingly at least one of the issues may be connected with multis.
+Test is: echo 'use B;' > A.pm && echo 'unit class Foo; multi method new() {}' > B.pm && rm -Rf .precomp && perl6 -I. -MA -e ''
+If i just remove the "multi" it works fine
+It also works if I manually create the proto!
+Indeed. When I add the missing protos in NativeCall::Types, I can compile and load all of NativeCall in a single process
+That's...intriuging, though I don't immediately have any guesses
+Proto auto-generation is implemented in terms of generic instantiation
+Though from a pre-comp perspective I'm not immediately seeing why that's not just a comparatively boring bit of meta-programming.
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=130798
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=130798
+Zoffix: I'll pass your message to jnthn.
+Zoffix: I'll pass your message to jnthn.
+Yes, it's being Iterable that matters
+21:51Z <Zoffix> jnthn: is it normal that +a slurpy breaks up hashes into a list of pairs? e.g. -> +a { dd a; dd a.^name; dd a.elems }( %(:42a, :72b, :55z) )  gives «(:z(55), :a(42), :b(72))␤"List"␤3␤» I would've expected «(%(:z(55), :a(42), :b(72)),)␤"Hash"␤1␤»
+21:55Z <Zoffix> jnthn: never mind; I see *@a does it too. I guess it's normal, since Hash is Iterable... just weird.
+**@a and |c are the ones that don't do it
+Those just collect arguments as they are
+Ah, looks like there _is_ still a leaking in issue as well, as I've just got a NativeCall::Types precomp file depending on Inline::Perl5::Interpreter
+no andthen! I refuse to play your Chinese food mind games!
+o/ Zoffix++
