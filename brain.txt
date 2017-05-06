@@ -38459,3 +38459,1344 @@ Those just collect arguments as they are
 Ah, looks like there _is_ still a leaking in issue as well, as I've just got a NativeCall::Types precomp file depending on Inline::Perl5::Interpreter
 no andthen! I refuse to play your Chinese food mind games!
 o/ Zoffix++
+jnthn, you should find one of your modules and add a license to meta
+we're at exactly 50% things with/without licenses. you could win points if you get us over 50%
+or anybody here!
+Files=1192, Tests=56873, 210 wallclock secs (12.46 usr  4.80 sys + 1233.36 cusr 123.08 csys = 1373.70 CPU)
+ACTION gave an answer to http://stackoverflow.com/questions/43701570/how-do-i-efficiently-generate-a-list-of-primes-in-perl-6/43704475#43704475
+This is Rakudo version 2017.04.3-112-g1ed76a903 built on MoarVM version 2017.04-44-gf0db8822
+csv-ip5xs        3.230
+test            13.036
+test-t           5.347 - 5.379
+csv-parser      13.109
+and my computer was not busy doing other stuff
+[Tux] could it be that you have a large .precomp dir ?
+lizmat: would that make any difference?
+well, in most OS's dir searches are still lineair
+I should say, filesystems
+if you have 1000's of .precomp entries
+that does make a difference
+290M    .precomp/
+rm -rf .precomp/ .panda-work/
+This is Rakudo version 2017.04.3-112-g1ed76a903 built on MoarVM version 2017.04-44-gf0db8822
+csv-ip5xs        3.034
+test            13.046
+test-t           5.107
+csv-parser      14.313
+so looks like it made a difference  :-)
+but still not way below 5.000 :/
+[Tux]: true  :-(
+Unhandled exception: Missing or wrong version of dependency '../MoarVM/install/bin/../share/nqp/lib/MAST/Nodes.nqp' (from 'src/Perl6/Pod.nqp')
+what could be causing that while trying to make rakudo?
+Have you tried make clean?
+I usually need to do that after updating nqp
+I hate Makefiles-- so much :(
+cross-project makefiles, not much fun
+samcv: Discovered https://github.com/jnthn/p6-app-moarvm-heapanalyzer was still without one, so there we go... :-)
+yay!
+you win!
+party time
+:-)
+now we can say that *most* modules have license tags
+cool
+"your chance of a module having a license tag is better than 50/50!"
+that is unproven.
+though
+but if you randomly install all modules then yes
+does anyone know if slangs have a large overhead?
+i've never measured, but it shouldn't be terribly big
+and it's only compile-time overhead of course
+I was looking at [Tux] csv code again, i.e. https://github.com/Tux/CSV/blob/master/test-t.pl
+if you put an 'exit 0' at line 8 and then time the script I get 1.3 seconds
+and if you rewrite it to be untuxic?
+I'd say one second faster
+i.e. I removed the compilation errors I get when I remove the slang
+interesting
+wanna --profile-compile that?
+is there a --profile-compile switch?
+or do you mean perl6 -c --profile test-t ?
+there is a --profile-compile switch
+cool, didn't know that
+Zoffix: working on that
+:)
+hmm, wrote perl6 --profile-compile test-t.pl    and now it hangs, maybe it's slow
+it's likely quite slow
+I'll wait then :)
+is a raw » allowed in the comments and literals in the MoarVM source
+hopefully it won't blow up in memory usage and asplodes :)
+pmurias: i know nothing about the other C compilers we target :)
+but isn't » in latin1?
+that should totally be fine
+timotimo: gcc handles that fine, I don't know what else are we using to compile on other despicable platforms
+hmm
+well, you know, we're using {} and other kinds of parenthesis without using trigraphs
+i think a latin1 character should be fine
+right, that must be because it was originally used as the test for dir?
+which of course could also have used none(any(...)) rather than just the any from curupdir
+or, you know, none(|$*SPEC.curupdir)
+timotimo: the routines with the largest exclusive times are: mergesubstates (17.99), mergesubrule (14.85) and addedge (14.52)
+these are percentages btw
+oh, yikes, why isn't the result of that precompiled?
+dogbert17: was that for a clean (i.e, hadn't been compiled before) run?
+or is Slang::Tuxic exporting a "no precompilation" thing?
+I had run it before but I could try again
+https://github.com/FROGGS/p6-Slang-Tuxic/blob/master/lib/Slang/Tuxic.pm
+i'unno
+ACTION runs again with --profile-compile
+1.3 secs to get the code running is quite much, perhaps it's different on 64 bit systems
+well, we have the jit there, so that's something
+feels to me the 1.3 is mostly Slang::Tuxic causing a redo of the grammar
+hm. i wonder if a manual call to precompute_nfas would help
+it's a private method on a Grammar
+perhaps that could go into define_slang
+lizmat: but if it takes the same time on [Tux] machine then that's 20 % of the total execution time
+dogbert17: have you tried removing Slang::Tuxic from test-t.pl ?
+looks like it doesn't need it
+I do get compilation errors if I remove it
+you do ?
+hmmm
+opening and at the same time (?) changing the permission flags?
+lizmat: two terms in a row on e.g.         $sum = [+] $csv.getline_all ($*IN)».map(*.elems);
+yeah... seeing now too, wonder what happened before
+mhm
+ah
+dogbert17: rewriting test-t.pl to plain Perl 6 saves me 13% (3877 -> 3406 msecs)
+that's quite a savings
+it *would* bring it below 5 seconds again  :-)
+but I seem to remember that [Tux] wanted his slang
+correct. no slang = no Text::CSV (at least not by me)
+yeah, but one could argue that's not needed in the test file
+[Tux]: I mean, test-t.pl is like a user file, and a user would most likely *not* use Slang::Tuxic
+lizmat, I agree: but if it surfaces additional problems, the canary lives happily everafter
+so I think it would be fair to remove Slang::Tuxic from test-t
+lizmat, unless the user is me :)
+well, we could make a test-tuxic.pl  :-)
+[Tux]: how many lines is hello.csv supposed to have so i get the same workload as you?
+Or try to figure out why Slang::Tuxic requires `no precompilation`, if that's the issue? :)
+it doesn't have "no precompilation", though
+ah
+on my system I get (test-t) real 0m8.859s, (test-no-tuxic) real 0m7.871s # this is a crappy i5 660
+Ah, OK
+yeah, that's about what I saw
+hm. i added precompute_nfas to define_slang but it didn't make mergesubstates/optimize/mergesubrule/addedge disappear from the top of the routines tab
+it does have precompute_nfas in it, at the 5th spot, and it takes 73% of total run time
+er, total compile time
+ACTION is now grammar expert so https://github.com/FROGGS/p6-Slang-Tuxic/blob/master/lib/Slang/Tuxic.pm does not give me any clues
+s/now/no/ :)
+dogbert17: It is like a finger pointing away to the moon. Don't concentrate on the finger or you will miss all that heavenly glory.
+(the finger is Slang::Tuxic, the moon is rakudo's and nqp's innards)
+ah
+so IS Slang::Tuxic precompiled?
+yes
+afaik
+and Text::CSV as well
+afaik
+so it might be the 'redoing of the grammar' which takes up the time then, like you wrote earlier
+prefix:<!> exists in core, postfix:<!> doesn't
+jnthn: I made a pull request to fix the str to num conversion
+jnthn: :16[1,1] is not implemented yet
+jnthn: http://paste.scsys.co.uk/559078
+so the thing that didn't exist tool ~0.3 secs to compile then
+jnthn: that the test file for that PR
+i don't konw how grammar::tracer fails to invoke the original $meth
+oh, it could very well be it's deeper inside than i thought
+we really are calling invoke_o on VMNull
+jnthn: could the fact that match objects and cursors are now the same thing (and derived from the grammar if i understand correctly?) have some bearing on why grammar::tracer's wrapcache explodes?
+the last thing it prints from my debugspam before exploding is that it's just made an unwrapped version of !alt
+huh, *weird*
+say "something" gives an "unable to invoke this object (REPR: Null, VMNull)"
+but nqp::say("something") works
+thank you, evalable6
+timotimo: so we have a couple of broken modules as well
+what the flying fuck.
+even $indent++ or $indent = $indent + 1 breaks
+jnthn: could it be that the created wrapper function somehow isn't correctly closing over the perl6 core setting?
+ACTION pretty stumped
+ACTION re-runs after lizmat's commit
+note that this did neither change Text::CSV not perl6 (rakude/nqp), but *just* the invoking script
+s/not/nor/
+4.436
+whee!  :-)
+I still think this time change isn't fair
+[Tux]: I think it would only be unfair if you were the only user of Text::CSV, which I sincerely hope is *not* the case
+afaik, test-t is about testing Text::CSV performance, not Slang::Tuxic performance
+lizmat++, [Tux]++
+at least we now have an idea as to the current compile/execution overhead wrt Slang::Tuxic
+$ 6 ''
+real	0m0.120s
+$ 6 'use Slang::Tuxic'
+real	0m0.557s
+lizmat, I mean that it now *looks* like the speed improved, but nothing changed
+and there still remains the undelying performance loss of using a slang in two layers
+[Tux]: two layers ?
+there is only a compile time performance issue
+since we don't pre-compile the script, we see that in every run
+Text::CSV already uses Slang::Tuxic, so I see no reason why having the calling script also using Slang::Tuxic causes that much overhead
+ah, oké, that explains
+because the precomped version of Text::CSV doesn't need It anymore
+right
+right, removing Slang::Tuxic from the rest of Text::CSV will not have a performance impact on test-t performance
+anyway, ideally we'd be able to just re-use the precompiled result of Perl6::Grammar + Slang::Tuxic::Grammar and then the performance hit on test-t would be gone regardless of using Slang::Tuxic or not
+timotimo: I'm not seeing how you could merge the precomped Grammars
+hm. because the EXPORT is run every time the user script is run?
+you're right, there's nothing we could really do about that :\
+ACTION would have loved to be proved wrong
+a little spark of hope was to check if what we're being passed is the pristine Perl6::Grammar and just return a pre-made one from a module we've precomped
+but i don't think we can just change the type from underneath the instance?
+i mean, we do have a type change thing that exists. not sure if that'd work here
+ACTION neither  :-)
+of course, test-t could become a module that just gets used and it'd do its thing in the mainline :)
+yes, but *that* feels like cheating, as we lose the compile overhead of test-t altogether then
+yes
+Text::CSV is typically used in one/few-off situations
+it'll give an unexplained change in all timings
+if anything, perhaps we should deduct .3 from all measurements so far
+mayhaps
+anyway, the whole mergesubrules and stuff business can become faster from a thing TT has been pondering
+so maybe we'll get to chop a few second-parts from compile time there
+that would be brill  :-)
+as far as the rest of the code I remember [Tux] pointing to the slowness of the NEXT phasers
+afk&
+dogbert17, that is because return/next/last is handled as exception (as jnthn explained), so only an optimizer can be used to boost the use of next
+where a relatively simple looking loop using next and last to jump out of it can be re-written to be a huge if/else tree
+s: &infix:<%%>, \(4, 2)
+MasterDuke_: it looks like your PR breaks the JVM build ?
+t/qast/01-qast.t failed, but i don't see how i could have effected that at all
+.tell nine With a Rakudo built from scratch a few minutes ago, I am unable to install Inline::Perl5 using zef, despite tests passing.  Error: ===> Install [FAIL] for Inline::Perl5:ver('0.26'):auth('github:niner'): ===SORRY!=== Could not find Inline::Language::ObjectKeeper at line 4 in: ...
+japhb: I'll pass your message to nine.
+hmmm.... Geth and/or GitHub a little slow
+anyways, I've just committed https://github.com/rakudo/rakudo/commit/a2602b9cee60f746b601
+gfldex was mentioning in #perl6 that he was testing github's api today and it was very slow and causing retries
+https://status.github.com/
+you see that?
+yeah, looks all green no?
+"time to first byte" went up to almost 20 seconds (or is that just 2s?)
+looks like it peaked just below 4 secs
+right, not 20 %)
+but mean hook delivery time is still < 1 second
+so maybe Geth has an issue ?
+anyways, looking at Baggy.grab(*)
+currently, that's eager
+I'm thinking of making it lazy, and having it return a Seq
+hmm
+so as you're iterating over the list, the bag slowly gets mutated?
+yeah, so I'm not sure whether that would be a bug or a feature
+I mean, if you want immediate removal, then make it eager :-)
+docs don't state anything about laziness
+specs also don't say anything about laziness
+right
+interesting little tidbit
+I could see uses for a lazy grab
+yeah
+kind of
+anyways, I will sleep on it...
+enough hacking today...
+good night, #perl6-dev!
+gnite lizmat!
+How can you be going to bed, it's only 6 pm! ;)
+oof
+fyi, timotimo merged https://github.com/perl6/nqp/pull/356 while Geth was still away
+:D
+you don't have to supply any filename?
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131239
+Zoffix: I think you'd notice a sudden change in runtime if you attempted to do certain operations on it that would imply rope-flattening.  But otherwise yeah, I believe it does ropify things like 'x'
+Zoffix: it looks like the MoarMV function operates on strands: src/strings/ops.c:444
+well, concat will complain if the resulting string would be longer than strings are allowed to be
+so if x is the max string size, it now can't be put'ted
+2**32 graphemes i think
+yeah. `MVMuint32 num_graphs;`
+i don't like it either, i think i created an RT about it a while ago but it was rejected
+i don't know how hard it would be to make that an MVMuint64. there is some code that assumes it's 32bits (like that error you just triggered)
+hm, maybe i never filed a ticket, just chatted about it
+i'd call that LTA
+that i can't say to valid strings. i'm not explicitly concatenating them...
+i didn't say it was a release blocker
+it's a MVMuint64
+fyi to anyone and everyone, https://github.com/rakudo/rakudo/pull/1073 has been updated with a typed exception
+Zoffix: I'll pass your message to nine.
+Zoffix: I'll pass your message to lizmat.
+Zoffix: I'll pass your message to lizmat.
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=126935
+This is Rakudo version 2017.04.3-132-g76af53671 built on MoarVM version 2017.04-44-gf0db8822
+csv-ip5xs        3.216
+test            13.546
+test-t           4.616 - 4.669
+csv-parser      13.682
+this is the new timing with test-t *not* using Slang::Tuxic. The first tests showed 4.436
+Zoffix: 4.616 is the runtime in seconds to parse 10000 lines of CSV, so the lower the better
+perl5 + Text::CSV_XS uses a mere 0.033 seconds
+ah: Text::CSV uses Slang::Tuxic, but that is precompiled. The calling script is not precompiled, and lizmat and timotime decided it was "cleaner" to test Text::CSV without the overhead of Slang::Tuxic in the calling script, as they expect most users won't use it
+as a slang in the calling script causes about .5 seconds overhead, they wanted it out
+ACTION still thinks this is unfair :)
+faster?
+reading
+oh interesting
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131185
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131185
+I've just read through the comments on the RPerl grant proposal. Kinda depressing read.
+30 Apr 2017 21:04Z <japhb> nine: With a Rakudo built from scratch a few minutes ago, I am unable to install Inline::Perl5 using zef, despite tests passing.  Error: ===> Install [FAIL] for Inline::Perl5:ver('0.26'):auth('github:niner'): ===SORRY!=== Could not find Inline::Language::ObjectKeeper at line 4 in: ...
+Files=1192, Tests=56874, 210 wallclock secs (12.28 usr  4.85 sys + 1230.62 cusr 124.90 csys = 1372.65 CPU)
+well, then there's the thing about automatically closing it when the iterator exhausts
+the commit message states it made things 10% faster
+probably because it can bypass .get if it knows it is =:= IO::Handle
+Zoffix: perhaps, you're in charge in that area now  :-)
+Looking at that Inline::Perl5 failure, it's a good thing that I have not declared a new version. Doesn't help at all though since our installers don't care about declared versions and just install git master :/
+who runs the hack.p6c.org server? i need somebody to install fuse for me
+so this appimage will actually be created which has every single nonfailing module in it :D
+at least theoretically it should. no reason it shouldn't
+debian?
+i think it's just called fuse
+ok it probably works. will find out when it finishes trying to install all modules again
+since i started it a few mins ago and it clears the files
+lizmat: are you around?
+check this out
+dogbert17: care to rakudobug it ?
+lizmat: I'll rakudobug it, give me a few minutes :)
+dogbert17: I've got a fix already
+so, whatever you feel ok with
+what would be a good title
+you're quicl as lightning :)
+*quick
+well, I happened to be working a lot in that area recently, so I had a pretty good idea of where to look
+any title suggestion?
+eh...  SetHash retains container rather than object
+mail sent to rakudobug ... let's hope it shows up
+that part is a bit like hit and miss
+spectest is ok
+will wait with commit until we have an RT id
+cool, do you think the SetHash was the only type affected?
+yay, RT #131240
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131240
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131240
+dogbert17: yeah, think it was the only type affected
+cool, do we need a test?
+in any case, I'm reworking some Bag/Mix internals at the moment
+I replied to the RT mail with the message "tests needed "  :-)
+I guess that the example could be turned into a test quite easily, I could do that if you tell me in what file to put it :)
+ls t/spec/*/sethash*.t
+t/spec/S02-types/sethash.t
+will fix
+dogbert17++
+lizmat: does this look ok ? https://gist.github.com/dogbert17/1641b0e6e02f19d8d41a4aefe09067ed
+well, that's also testing .pick
+well I need to get the key somehow
+if I change the last line to 'is-deeply $set, SetHash.new(1001), "SetHash retains object, not container";'
+ok $set{1001}
+should do the trick I think
+lizmat: bug is now marked as resolved :)
+thanks!
+the code I had, which uncovered the problem, now works again
+cool, afaics it wasn't a recent breakage, or was it ?
+well, it seemed to work in 2016-12 at least, perhaps AlexDaniel can figure out when the breakage occured
+hello
+hi
+e: https://gist.githubusercontent.com/dogbert17/1641b0e6e02f19d8d41a4aefe09067ed/raw/fda5d0d9191fbf6f41dd991942ac513edf7b4776/test.pl6
+star: my SetHash $set = SetHash.new; my $i = 1001; $set{$i} = True; dd $set; $i++; dd $set  # more clearly
+hmm
+right, it's broken in 2017.04.3
+and then it was fixed again I guess?
+dogbert17: but that's not what you were asking, right? :)
+Well, the code seemed to work in 2016-12 (which I have) but not earlier today so we're interested in when the breakage occured
+dogbert17: you mean this? ↑
+yeah
+so it was the commit on April 7th?
+btw, can you amend/update a pull request which has already been merged?
+there is a moronic typo in the PR I sent, i.e. in the code comment I wrote 130240 instead of 131240
+dogbert17: yes, you will have to force pushe it
+push*
+but it's ok if it's in your own fork
+can I rerun travis tests for a MoarVM PR? I fixed the nqp tests that where failing?
+I think you can re-run any set of travis tests if you're looking at the results.
+dogbert17: if the PR has already been merged, you'll update the UI on github and maybe it'll re-open it, but it won't change what's in the master branch
+argh, what is the URL for test-t data again ?
+looking at the improvement made in 2016
+*for
+huggable: csv
+no
+buggable: csv
+buggable: speed
+huggable: speed
+there it is
+whee
+timotimo: so… what caused it?
+AlexDaniel: removing 'use Slang::Tuxic' from the test script
+as we want to test Text::CSV for "normal" users (as in the ones that don't have Tux's coding preferences)
+what caused what?
+I felt we could/should make test-t.pl be generic Perl 6 code without Slang::Tuxic
+oh, that
+ACTION is looking at that
+well, 46% have tried Perl 6, that's good
+hmmm...
+yeah, a Cat would be nice
+please rakudobug  :-)
+yeah, that too, it's been loooong overdue :-)
+well, there's always .slurp.split  :-)
+is that your cat?
+cool pattern
+black heart of doom from killer cat!
+amazing answer
+Cat must be a subtype of Str?
+Cat should be Stringy, but not Str
+(That's the reason we added the Stringy role)
+(Or at least, so far as I remember :))
+I think gist/put on Str should be able to assume they have a Str they can just unbox
+If somebody writes a subclass that isn't OK with that, then I call Liskov. :)
+That also :)
+http://rakudo.org/2017/05/01/announce-rakudo-star-release-2017-04/
+nice cat
+BTW
+stmuk_++, but minor typo 'In particular This release'
+grrr
+fixed on the website anyway!
+goo.gl/eFaSXg
+stmuk_++
+huh. how's that?
+yeah, i'm just using them in the regex to quote the literal, i don't want to match them
+oh, right
+Finite-State Reduplication in One-Level Prosodic Morphology
+wish we could have ANI semantics for Perl 6  http://www.ybrikman.com/writing/2014/04/09/six-programming-paradigms-that-will/
+well, that's basically how I envisioned true multiprocessing
+a long time ago
+let the system figure out what can be done in parallel  :-)
+yeah, thought that too
+:D :D
+hehe
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131241
+fyi to anyone and everyone, https://github.com/rakudo/rakudo/pull/1073 has been updated with a typed exception and some adapted tests from roast. if/when this is merged i'll change the roast tests to just look for the correct type of Exception
+MasterDuke_++
+lizmat++, thanks
+ACTION finally back to civilization, but now has an infestation of grandkids :)
+.oO( takes a while to build an infestation of those  :)
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131241
+but that will be for tomorrow
+dinner&
+*sigh*  so should I mention the Rakudo Star release in the P6W or not ?
+so does it prevent users to use R* on Windows completely, or just when they want to install in a non-standard location ?
+perl6.bat starts: @ "C:\Users\steve\temp\rakudo-star-2017.04\install\bin\moar"
+which is already a bit non-standandard :)
+ACTION likes "non-standardard"
+sort of self-descriptive...
+ah, ok, so basically useless for Win users atm
+:-)
+you are our star
+“There are 399,502 people in the U.S. with the first name Steve.“
+that's a nice little user base right there
+is defaulter
+heh.
+then we will have defaultest
+for the most default of the defaults
+defaultererester
+or is default(3)
+i mean would it be possible to give them numbers?
+the baghash/mixhash ones are mine
+when I tried to fix those, I realized that my fix for RT #131241 was incomplete
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131241
+so I didn't fix it yet
+will do so now
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131241
+yay :)
+and another Perl 6 Weekly hits the Net: https://p6weekly.wordpress.com/2017/05/01/2017-18-starlight-starbright/
+lizmat: you missed the opportunity to write "fixed various issues first with orelse and then with andthen" :P
+so WHAT :-)
+yeah, that was cool, wasn't it?
+good night, #perl6-dev!
+gnite lizmat
+lizmat++ # weekly
+argh my travi still failing due to URI not passing tests
+write string requires an object with REPR MVMOSHandle (got Scalar with REPR P6opaque)
+does not look that great https://travis-ci.org/samcv/keira-perl6-ircbot/jobs/227742055#L1487
+anybody know if this is a bug that was introduced?
+https://github.com/perl6-community-modules/uri/blob/master/t/01.t#L33 <- the failing code
+it passes for me on 2017.04.3 but not blead
+that should perhaps be changed to use a IO capture module or something
+that cant be it, that fails for me in 04 too
+why is it even using $fh.say($u) there?
+it's apparently supposed to check if the gist is okay?
+no idea
+so those method print and print-nl allow it to work on 04 and earlier
+my $scalar; my $fh = IO::Handle.new but role { method print(*@stuff) { $scalar ~= $_ for @stuff }; method print-nl { self.print("\n") } }; $fh.say("OH HAI"); $fh.say("bai bai"); say $scalar
+it works with $fh.print though
+possibly https://github.com/rakudo/rakudo/commit/76af5367158a4b72378248c36d42e71fbffee03c ?
+yeah, now it goes through nqp::printfh instead of through self.print
+and since the IO::Handle was .new'd but not properly opened: bang!
+might want to consider making IO::Handle.new explode
+or something?
+anyway, bedtime
+looks like maybe because before the print was doing unbox_s(.Str) but now its unbox_s(x.gist)
+that test isn't needed anyway
+fixed in URI now anyway https://github.com/perl6-community-modules/uri/commit/ece6bcb261e6e21dab4a5d1aeeaadd2a6b264597
+ugexe++ :-)
+oh ugexe i have a new grammar thing i'm working on for spdx
+what? you didnt want to keep building on an abnf grammar??
+you quickly realize its ok for validating, and thats about it
+abnf?
+this is what the parse tree looks like https://gist.github.com/samcv/7ba95a0f1d3d63b79e5a8da8dae0b7a6
+the grammar i wrote in that one comment was translated from the abnf grammar in the spdx spec
+ah
+its the grammar you usually see in RFC docs
+i think this tree will be much easier for parsing
+still need to get parens to work. but should be able to figure that out with how the grammar is
+why is compound expression the same as the or-and?
+because they're all OR or AND
+thats every compound expression no?
+and then we can see their position and the keywords between them
+simple-with-exception
+there's that
+also gives room to add more things. i mean not everything only has OR and AND in it
+when you have parens, then those will be broken up into or and
+or-and matches that can be processed independently
+you sound like you know what you're doing which is more than i can say so...
+just thought you might want to see it. i had to change how i did it from before because it became untenable
+yeah i saw the new branch
+yeah 'next' branch
+one problem im wondering is if we can make the version ranges work in elastic search query
+hmm
+sure
+GPL-1.0+ becomes GPL-1.0 or GPL-2.0 or GPL-30.
+i think the only way to really make it work would be to turn ranges into a bunch of literal Foo-1.1 OR Foo-1.2 OR Foo-1.3
+haven't used elastic before
+yeah of course. and we know all the licenses before hand
+it already handles a q=license:Whatever OR (license:whatever AND license:whatever)
+or even /'GPL-3.' . /
+idk can we do any uh. regex type things
+version ranges are supported for versions
+version:1.*
+but not 1.+
+i mean for licenses though
+but for licenses i mean
+right i imagine its just a string match or a fuzzy match
+you can do GPL-3.* ?
+i believe you can do string fuzzy matching like sql
+so GPL-3.% or something
+ok
+so we can do GPL-3.% OR GPL-4.%
+just do one more version than we know about?
+hm
+well if you want 2.1+ it could match 2.0
+hm
+give it every version number
+2.1 2.2 2.3 2.4 2.5 2.6 2.7.. and then 3.+
+you can put as many thnigs as you wish yes?
+yeah
+Files=1192, Tests=56879, 208 wallclock secs (12.20 usr  4.89 sys + 1225.65 cusr 123.04 csys = 1365.78 CPU)
+This is Rakudo version 2017.04.3-153-ge5870c11d built on MoarVM version 2017.04-44-gf0db8822
+csv-ip5xs        3.143
+test            13.788
+test-t           4.516 - 4.571
+csv-parser      13.441
+nice and low
+essentially no change
+win 3
+erk
+Hmm, have some (stress)test failures. t/spec/S06-signature/types.t, t/spec/S17-supply/syntax.t and t/spec/S32-exceptions/misc.rakudo.moar
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131241
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131241
+fun!
+indeed it is!
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131241
+afk&
+whoops. is it expensive even when it's idling?
+damn
+right, annoying indeed
+Zoffix: I'll pass your message to mst.
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131242
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131242
+the problem i foresee coming from 334 is that its going to ultimately be huge. listing the version, support, various package managers... and then you'll end up wanting to add optional/test/build/emulates/supercedes dependencies and so on. It doesn't really belong in core, it doesn't really belong in the ecosystem spec (because it would be any ecosystem)
+i would imagine you would use a build module for this purpose
+we want something for "test-depends", too :P
+and optionals, how do we do optionals?
+the toolchain-bikeshed is pretty simple, and intended to allow installing things like Inline::Perl5 with core perl6
+there are no optionals yet :P
+because then we need to define optional test and build and... should probably just steal whatever perl 5 meta spec did
+we could just make the meta a dockerfile
+or steal all their good parts
+Would be good to consider the Windows "just download, verify, and install the DLL" thingy into this too
+Which is probably the leading use of Build.pm
+yeah, that'd be nice
+Which I figure is also not a long-term solution :)
+"hey i have this https url here and a few different hashes"
+verify? lol
+"also please get the right bitness"
+ugexe: Yes, the hashes are included in the Build.pm, meaning there's detection if the thing that was downloaded got tampered with
+but who verifies the meta6.info?
+Or some non-malicious accident :)
+timotimo: It's not foolproof, but it does mean that somebody would have to get a github commit bit on the module *and* access to where the DLLs are stored
+Which is a good step up from just needing to get to the latter
+aye
+that type of logic would work better in a hook
+which, an idea timotimo gave me, would give zef a place to provide its fetching mechanism
+but we were hoping to make things declarative? :|
+timotimo: well afaik the declarative stuff is intended to be simple enough to go into the core Distribution object - enough that Inline::Perl5 could be installed. im not sure how fetching logic can fit into that though
+you could still declare it, but the logic to fetch it needs to exist somewhere
+hm, you mean any meta6 should be properly installable even without an installer?
+just through code that's inside rakudo?
+thats what i've always strived for
+you can install modules with Build.pm now without an installer
+hmm
+if we had some way to abstract the logic to create a fetching or extracting command (curl, tar, etc) per-system into some generic command then it could
+which is what zef does, but thats way too much cruft for core
+win 2
+argh
+the toolchain bikeshed build.md file contains a json that's invalid because it uses non-string hash keys
+timotimo: ah that's what the syntax highlighter tries to tell me?
+i believe so
+that's just the gist, though
+is the order of elements in Bag.Stringy defined?
+where are using that to compare stuff in a test
+and it fails on rakudo.js because they are returned in a different order
+if there's no "sort" in the implementation of Stringy, then we're not supposed to rely on its ordering
+... well, you could interpret that the other way around, too
+I'll fix the test then
+ACTION notes that .perl and .gist do guarantee sorted order
+they're supposed to
+you can always iterate a hash yourself if you really want unordered
+sets and bags should follow the same policy
+yeah, that's unordered
+Zoffix: I'll pass your message to pmurias.
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131244
+just because hashy things are fundamentally unordered doesn't mean we always have to present them that way
+TimToady: Didn't we say at one point that we were going to rand all of them so people didn't rely on an implicit order that wasn't promised?
+yes, we did, at one point
+but we said the other thing later :)
+the educational value is repeated inflicted on people who are probably not ready to learn it
+*repeatedly
+hmm, that seems to be two different thoughts stuck together, need more coffee
+anyway, it's lies-to-children that don't hurt much because the user generally wants the output sorted anyway, and if they sort things themselves they don't pay twice
+and anyone who's writing an algorithm whose performance depends on not sorting is probably gonna be smart enough to know the truth by then
+but we're also fighting the innate tendency in humans to say "I had to go through this pain, so you do too, and the sooner the better."  :)
+so anyway, the current policy is that explicit iteration never sorts, but the implicit iteration done for things that stringify does sort
+ACTION understands that this is also a little surprising to people coming from Perl 5, but that's just one of the spots where we decided to break with the past
+Zoffix TimToady: this would apply to Sets as well ?
+yes
+yeah, saw that
+am currently deep in a Set/Mix refactor to make them faster
+the assumption here is that most internal operations that have to be fast do not involve stringification, which is only needed at the endpoint
+TimToady: with the exception of .WHICH, which *is* needed for internal operations of Set/Bag/Mix
+well, we're trying to get away from strings for .WHICH eventually anyway
+but yeah, if you're gonna have an identity on something underordered, the disorder can't participate
+ACTION wonders what "underordered" means...
+I guess, if we end up with probabilistic hashing for identity, we can at least limit the possibility of collision to the objects of the same type, since the type is part of the identity, and any given type could take extra steps to make a collision impossible, if we set it up right
+baking in all the information from the value is one way to do that, but as we see from our current implementation, that can be slowish
+not just in generation, but comparing two strings can be a lot slower than comparing two integers
+well, 2x two integers, I guess: one for the type
+another way to guarantee uniqueness is with a value registry for the type, presumably one that can look up a value via its parts without going through the trouble of generating a stringy WHICH, or there's no point
+basically, teaching the type to intern itself
+re 2x, sure, though one could engage in sophistry and argue that any 2 integers just form a single larger integer :P
+note I didn't say how large an "integer" is :)
+ACTION doesn't know offhand if 64 bits is enough to make people comfortable about lack of collisions
+but anyway, types that know how to make integer identities is the long-term goal
+my $scalar; my $fh = IO::Handle.new but role { method print($stuff) { $scalar ~= $stuff; }; method print-nl { self.print("\n") } }; $fh.say("OH HAI"); say $scalar; # Zoffix, did you see this doesn't work anymore (for better or worse)?
+$fh.print("OH HAI"); still works though
+the only thing i can see is maybe you need an addition .Str in the new multi?
+Overriding print and expecting to see a change in say is programming to an implementation rather than an interface. That behavior was never promised and promising it would rob us of an important optimization opportunity.
+As you said: if you don't. But IO::Handle does.
+Also .push-all is just an optimization while .say does have different semantics to .print
+Very different in fact as .say is targeted at humans and thus uses .gist for stringification, while .print is a much more low level output mechanism.
+does anyone have a Windows system handy?
+start
+quick test of thnew msi
+errr
+I'm still scping
+it should be a few mins only
+ADSL-- # too A
+yes I think someone else reported that as well .. it really needs love from someone who uses Windows more than 10 mins every 3 months (like me)
+gaming?
+I/
+I've been tempted by thimbleweed park
+lizmat: thanks. part of making the currently broken roast tests better
+http://pl6anet.org/drop/rakudo-star-2017.04.1-x86_64%20(JIT).msi
+i used to use windows for gaming only, but now games are so much better about running natively in linux and/or wine has gotten really good that i've 100% switched to linux
+of course .1 is .3
+I thought I'm on #gamingonlinux for a second there :o
+yes
+say "hello world"
+yes its not signed or whatever
+I've never seen that .lnk message it should just install under c:\rakudo
+timotimo: the telemeh commits seem to have broken appveyor windows builds
+yay!
+developers! developers! developers!
+developers! developers! developers!
+timotimo: https://ci.appveyor.com/project/ugexe/perl6-grammar-http/build/1.0.5#L388
+that's probably enough ..
+i should probably not be doing --gen-moar=HEAD huh
+at least the MSI complaints showed usage
+the next version gets telemetry :>
+ugexe: no! no!! NO!!!! >:(
+why is it trying to define the intrinsic?
+it's only supposed to do that if the compiler doesn't have it
+i just don't know any more :(
+Can't spawn "./try": Inappropriate I/O control operation at build/probe.pm line 480.  ?!?!?
+good afternoon
+thx
+buggable, enter me in the lottery that gives fantastic prizes
+how can i do an accident on purpose?
+/win 1
+yay
+/lose 12
+apparentnly another codepoint you can't put in NTFS filenames is the ¥ symbol
+because... the japanese ascii codepage renders a backslash as a yen symbol. so you can't put actual unicode yen symbols in ntfs because reasons
+thanks windows
+perl6 -e "'¥'.IO.spurt('foo');" and perl6 -e "say '¥'.IO.slurp;" still works though (05/02/2017  04:56 PM                 3 ¥)
+heh
+windows police are going to get you!
+probably will break things with certain apis and it tries to acces folder\\ or maybe it'll just access the same folder?
+not sure what windows does i fthere's two backslash as a directory separator
+probably depends which file system api it uses
+yep
+so very potentially could cause issues
+dos should work as shown
+hm?
+explorer... no
+you mean not work properly?
+explorer doesn't work right? or dos doesn't
+i mean technically you can put a forward slash on an ext4 file/directoryname
+for instance: you can create files you cant even see in explorer (let alone make)
+but you'll never be able to access the file. and if you run fsck it will remove any / it finds
+ugexe, so you can create a ¥ named file but can't see it in explorer?
+actually I can see it in explorer. but there are many instances where this is the case yes
+`perl6 -e "'foo:bar'.IO.spurt('...')"` is a good example of misparsed on windows
+creates a file named "foo"
+also i'm curious. what unicode codepoints contain a forwardslash
+in the bytes when encoded as utf-8? do any exist?
+if so then i wouldn't be able to access the file
+you would, you just wouldn't know where
+although if the mistake gets round tripped it doesnt matter
+well the kernel code literally just looks for any forward slash bytes i believe
+using the example above: `perl6 -e "say 'foo:bar'.IO.slurp"` says the right thing, even though there is no file foo:bar (only foo)
+while (*name=='/') # traverses directories
+: is allowed as bacslash?
+no, its disallowed entirely
+at least in the file system api most people think of. the underlying file system however lets you do all sorts of bad stuff
+dammit
+AlexDaniel, should ignore unicode surrogates
+samcv: hm interesting
+yep
+I thought it would catch stuff like this
+you only catch ilegal yes?
+on ntfs, isn't 'foo:bar' a file named 'foo' with a resources stream attachend named 'bar'?
+oh wait, but isn't in your own code?
+AlexDaniel, U+D800 >= i <= U+DFFF  # not allowed in utf-8
+perl 5 will do it without battitng an eye though
+what you doing.... not actual code XD
+:|
+hahah
+unicodable6++
+Zoffix--
+samcv: why not? That should definitely work
+it's just too slow
+oh it should if you don't use `i`
+you gotta thread it
+split into like 4 parts
+then get results of the promises.
+and then some poor soul decides to use a counter in his code
+why would you do that
+i can't think of any reason
+come on unicodable, you are not broken
+you can handle this
+:| maybe not
+ok well i'm trying # for ^0x1FFFFF {  try { die $_ if .chr.encode.list.grep({ $_ == ｢\｣.ord }) } }
+ok i got Nil
+i wonder if that's intentional
+hmm Grammar::HTTP seems to have started getting some weird Substring length cannot be negative errors around 2017.03
+gonna check if \0 can exist inside any other things. i mean it SHOULD be able to exist in an array of 32 bit unsigned integers
+like 8bits all 0 should be able to exist on an 8 bit boundary
+when the 32bit encoded number is not 0
+but i havn't gotten that to trigger in MVM even though i cover for a case it might occur.
+this is not utf-8 encoded mind yo just MVM's representation of strings
+but Grammar::HTTP is only a grammar, it doesn't call substring or anything itself
+hmm. can i reproduce this ugexe by running tests suite?
+yeah
+https://travis-ci.org/ugexe/Perl6-Grammar--HTTP/jobs/228041631#L1014
+another uncurse curse?
+buggable: /win
+ACTION shrugs
+what a bunch of n00bs!
+oh wait, it's actually a bug?
+I didn't really notice
+bisect?
+not really
+https://github.com/rakudo/rakudo/commit/5d68f1ff1a8b32570a686bb8151805ba60d98251
+https://github.com/rakudo/rakudo/commit/3cff74cf5ac40e9df4ca45764759d84cc43a0c67
+so it is 5d68f1ff1a8b32570a686bb8151805ba60d98251
+nah, just wanted to see if it was different then what i get locally
+locally it says "Cusror.new" followed by the P6opaque bit
+oh no, Cursor.new
+Zoffix: alrighty, what should be done with the bug above?
+Zoffix: should I submit a regression ticket or something?
+or are both outputs buggy?
+Grammar::Debugger shows it blowing up when matching 'to' now that i see you mention self.to
+“Ghost elements in array”… WWWooooOOOooooOOOOOOooooo
+it might all be related!!! :o
+.tell TimToady You may be interested in https://rt.perl.org/Ticket/Display.html?id=131247
+AlexDaniel: I'll pass your message to TimToady.
+i was reading https://rt.perl.org/Ticket/Display.html?id=114930 and even though it's just "an ordering problem", i.e., roles are composed before proto are auto-gen'ed, i assume the fix is not as putting `magically_auto_gen_protos();` before `magically_compose_roles()`?
+*not as simple as
+I didn't even know they made Perl that old!
+Zoffix: that explains why you didn't know about perl that old.
+because is hidden.
+they would like to bury perl 5.6, yes >.>
+i wonder when the first perl6 compiler release to drop 6.c should be
+i was thinking more along the lines of "30 years"
+What's the c stand for, anyway?
+"christmas", or "after beta"
+a was advent, b was birthday
+c stands for “a bit unready but still good enough”
+can anybody explain this?
+there's a comma after pop
+but pop does not seem to pop?
+right, the value should really be discarded
+buuuuuug
+yup
+well, let's see…
+internally we push, pop, unshift and shift by moving begin and end pointers around
+now THAT is long :)
+fwiw that's #131245
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131245
+amazing bug
+huh, i wonder if this is fine for GC ...
+yea depends on what you do with it
+it's totally not.
+amazing
+you'll want to look at moarvm here
+https://github.com/MoarVM/MoarVM/blob/master/src/6model/reprs/VMArray.c#L372  -  try to figure out if/why/how this set_size_internal doesn't reach zero_slots, or if the zero_slots call is wrong and does The Wrong
+okay, then fix it on the jvm, too
+jvm also implements vmarray, its code might look a lot like the moarvm code
+going to bed, have a good one!
+:|
+.ask nine are these two `sleep 2`s still needed? https://github.com/perl6/roast/blob/master/S10-packages/precompilation.t#L292-L294
+MasterDuke_: I'll pass your message to nine.
+This is Rakudo version 2017.04.3-163-gc7aef59a5 built on MoarVM version 2017.04-44-gf0db8822
+csv-ip5xs        3.323
+test            13.013
+test-t           4.340 - 4.395
+csv-parser      12.999
+decommute&
+I think its a dependency still for prove (although zef has made progress on that) as well as a DDL
+~
+04:07Z <MasterDuke_> nine: are these two `sleep 2`s still needed? https://github.com/perl6/roast/blob/master/S10-packages/precompilation.t#L292-L294
+MasterDuke_: oh, actually not! I just forgot to remove them as planned.
+odd we didn't see the DDL reports before .. I doubt that's changed
+err DLL even
+Which DLL is it missing?
+huh...wow
+I probably should use mingw rather than the gcc with Strawberry Perl
+Or do MSVC builds
+;)
+I prefer pretending I'm on UNIX :)
+I think the short term fix is to explicity list Strawberry Perl as a dependency under downloads errata
+I probably need to install another clean Windows VM  for testing
+people need Strawberry Perl for prove and gcc anyway
+grr $work meeting
+stmuk: Fair enough. I suspect both work out fine enough; I'm just more comfortable with the MSVC build 'cus it's the one I'm regularly using/shipping into production :)
+Not to mention MSVC was the first compiler Moar built under...
+and then i came along and tried to use an x86 intrinsic and made everything explode
+because of the "not closing file handles" thing?
+ok
+ah
+ah, because whatever splits lines will also split words
+there's no syntactic relief for "when i leave this loop, close the handle"
+hm. we do sink-all on a "regular" for-loop, right?
+i meant for $fh.lines and friends
+yeah, the worst is when we lazily decide to break off
+and the handle just never knows
+that's right :(
+a few things will be ... interesting
+like, i imagine most things will as a first step nqp::chars a string
+The regex engine will likely need major and deep alternations to match a Cat would be the one that scares me most :)
+if the string's a cat, that'd have to fully generate it
+a plush cat, then?
+i'm not sure how deep we'll install cat into the vm itself
+Not very, I'd think
+OK, so no special repr or anything
+Since the fetching of the next bunch of things will be done in HLL code
+Did you mean 'Rat'? Or another small mammal?
+did you mean squirrel?
+Actually since for $fh.lines(:close) {...} is pretty much $fh.lines(:close).map: {} the iterator returned by lines could ensure that the file handle is closed however the loop is exited.
+How?
+Overriding method map or maybe sink.
+And then when they do for $fh.lines(:close).grep(/foo/) { ... } ?
+then you're ... in trouble
+The point here being that losing interest in an iteration is done implicitly, not explicitly.
+It'd have to override all Any-iterable-methods
+So trying to "solve" this boils down to fighting a property of the iterator pattern itself, which lacks an explicit "unsubscribe"
+(The supply world having one, becasue all the references point in the opposite direction)
+Yeah, maybe it's just not a good idea :)
+That's my feeling, yeah
+I think IO::Path.lines is, sadly, probably a bad API in the first place
+Sometimes there's necesary complexity
+workes in FF 52.02 on arch linux for me
+hm, good thing i just made coffee, i'm on kubuntu zesty on the laptop, not arch
+.cache is not a mutator, is it?
+i didn't know that
+got a one-liner to recursively remove .precomp dirs I could steal?
+rm -rf **/.precomp :)
+at least in fish it does
+timotimo: and in bash with extglob enabled
+i believe i first learned about it in zsh
+Zoffix: 'shopt extglob'
+it's important that you have shopt it
+hm
+hm, no, it's globstar
+shopt -s globstar
+we can try "find -type f -name '.precomp' -delete" maybe?
+first without -delete probably :D
+cool
+find . -name .precomp | xargs rm -rf
+is what I use anyway
+nine: like to live dangerously, eh?
+MasterDuke_: yeah!
+timotimo: -type d is probably more useful
+oh, f stands for file, not folder
+m)
+MasterDuke_: most of the time I actually do use -print0 | xargs -0 but not when I'm sure there are no spaces in the involved paths. Then I'm just lazy
+i've tried to get myself in the habit of using -delete
+probably wise :)
+Zoffix: I'll pass your message to lizmat.
+Zoffix: I think List doesn't do so because it's a positional thing
+And keeps hold of the things it evaluates
+Caching the Seq takes the iterator and uses it for the cache
+On Seq?
+Oh
+It's a method that is called when something is in a void context
+Which we call sink context
+Correct
+Because a variable is just accessing something
+Consider
+my @a = lazy blah();
+If we were to sink that we'd end up trying to evalute the whole thing.
+So the presumption is that data structures that store thinks, like List, Array, etc. don't go doing evaluation in sink context
+*store things
+Because by creating them you've created a way to refer to the data in the future
+Zoffix: I'll pass your message to lizmat.
+Unlike a Seq, which (caching aside) is one-shot.
+what kind of thinks do you do?
+oh, bunch of todo passing in that last gist
+Zoffix: I'll pass your message to TimToady.
+ping
+i believe t/spec/S32-exceptions/misc.rakudo.moar is because of my recent rakudo change (i.e., adding X::Parameter::InvalidConcreteness). i'm looking at it now
+Ah, phew, if there was an extra Async:: in that error I'd be on the hook :P
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=131245
+what's actually keeping us from throwing a strawberry perl dependency out? we do have our own prove-like that we already ship with rakudo, don't we?
+i believe if anything ever wants to compile stuff it'll try to re-use what moarvm was compiled with, could that be?
+so if you have an msvc-compiled moarvm from a rakudo star or something you won't be able to compile custom modules unless you install msvc
+well, it's in the backendconfig?
+and isn't that what stuff liek LibraryMake uses?
+https://github.com/retupmoca/P6-LibraryMake/blob/master/lib/LibraryMake.pm6#L122
+LTA certainly
+whether actual bug could be argued I guess
+yeah, should it just do nothing?
+because that's a 1-line fix
+right, that's why it modulates
+i just added `return unless $elems`
+makes it do nothing, spectests clean
+src/core/Rakudo/Internals.pm:24
+`nqp::unless($elems, return),`
+what i actually added
+easy hange
+*change
+Taken 3: former CIA agent Bryan Mills deals with a personal tragedy of having a unreified Seq
+huh?
+what ;_;
+why even ;_;
+Zoffix: I'll pass your message to stmuk.
+i'll just go ahead and make telemeh off by default.
+so you'll have to enable it at Configure time
+anyway, didn't i merge telemeh after the release?
+that's just a small part of it
+the system itself has been introduced a buncha commits earlier
+didn't we have to build a non-release moarvm for rakudo stra?
+rakudo straw %)
+anyway, stmuk can build moar with --no-telemeh
+and i switched telemeh off by default just now for newer versions of moarvm
+foo
+sorry about the telemeh disaster :\
+no worries .. at least it shows people are using it
+and I like the idea of Strawberry Star
+:D
+it only shows people are using star %)
+This is Rakudo version 2017.04.3-170-gf4cbdb64b built on MoarVM version 2017.04-57-g8d8a09b9
+csv-ip5xs        3.082
+test            13.113
+test-t           4.276 - 4.356
+csv-parser      12.863
+Files=1192, Tests=56885, 206 wallclock secs (12.35 usr  4.94 sys + 1216.70 cusr 123.72 csys = 1357.71 CPU)
+wonder if we would want to implement a Hash.grab
+grab?
+oh i forget what baggy thing i wanted
+maybe i will remember
+afk&
+oh lizmat i wanted to be able to add more thnigs to a baghash
+with the same semantics as (foo,bar).BagHash
+my $bh = (1,2,3,3,2).BagHash; $bh.add(2,8,9)
+lizmat, if you add that I will be very happy
+you can grab things so would be nice if you can add things
+ACTION wonders what semantics that has :)
+Ah
+It doesn't implement it, just inherits the auto-viv from Any
+But given Hash does implement .push that may be more consistent
+noted
+that edits the baghash, what i'm looking for is adding elements from an Array and have it be as easy as creating/semantically similar as creating a BagHash
+sleep &
+night o/
+nighty night!
+that too  :-)
+and better  :-)
+Yeah, I think the 1 xx * one doesn't do the right thing if there's repeated elements?
+but that looks to me like the semantics that BagHash.push should allow
+jnthn: yeah, that's why yours is better :-)
+hmmm..  :-)
+what's the difference between a VMString and a BOOTStr?
+BOOTStr is a boxed object, VMString corresponds to str
+i think you were talking about this recently, but are VMStrings much more efficient than BOOTStrs?
+Yes, in that they save an allocation
+(Of the box)
+Zoffix: Bootstrap
+strings powered by twitter
+a heap profile of `-e ''` shows 35,705 VMStrings and 14,963 BOOTStrs. any way to see where the BOOTStrs came from?
+wow
+it's working
+I'm sure there's a catch somewhere (besides this useless use message)
+MasterDuke_: we don't have anything like "origin tracking" or something
+if you mean that
+but the regular profiler will tell you what function allocated how many BOOTStr and such
+yeah, but a regular profile of `-e ''` just shows one BOOTArray and one BOOTCode allocated
+did you --profile-compile?
+hm. that shows 557 BOOTStrs and 151 Strs, but no VMStrings
+but VMString is just the REPR, and BOOTStr is one class that uses that repr ... at least i thought so
+ACTION still wishes there was some way to write ordinary comparison operators with an option to hook them to tap output
+so that you could just explicitly use 'eqv' but still get diagnostics that know the args
+but the last time I pushed that idea was before we had a decent compiler :)
+I suspect we could now do it by overloading the comparison ops, and making 'ok' smart enough to look for "complicated" values of true/false
+except, of course, that comparison ops have to be chaining, which might complicate things...
+maybe cmp-ok is a macro?
+or cheats by looking things up in the caller's lexical scope?
+it's still notationally inconvenient
+druther just write: ok Foo eqv Bar, "did stuff"
+and make eqv smart enough to pass arg into to ok
+and it still degrades gracefull even if your 'ok' isn't bootstrapped enough to do anything other than pure boolean
+*fully
+*args
+ok could see that it as a Positional and use that for its report
+*has
+role ComparisonOperation { has $.lhs; has $.rhs; has $.op }
+can't typ ths mrnig
+timotimo: or that
+though it'd be nice to handle chains
+so more likely a list that alternates args and ops
+but that'll take more work in the parser (which we wanna do anyway)
+on accounta chains are currently parsed as left-assoc and then reconstructed later as a hack
+we need to teach EXPR how to return the alternating form
+need that to allow proper user-level overloading of chains anyway
+doubtless we could find a few additional yaks to add there... :)
+only a few?
+I've seen toke.c
+ACTION comments with "no, fuck off, wait 2-3 years, btw I've spent 10 years working on this and think MY work should also wait 2-3 years"
+samcv: my comments on https://github.com/perl6/ecosystem/issues/334 are totally down to how hard I found it to figure out an approach - basically "yes, we should have this if we can, but it may take as long to get this to work as it took us to get 6.c"
+Zoffix: RT #126413
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=126413
+* doesn't close over anything, or closes over everything, depending on how you look at it; but there is no $_ inside for it to NOT close over
+* is the argument, so $_ can't be one
+oh, wait, nevermind, I misread :)
+perhaps it closes the $_ before parsing the with
+ACTION wonders if RT #126413 and RT #126984 are related
+how in the world is it getting a 1 the second time?
+something's acting like 'state'
+how is your day going?
+I'm going to have a look at ARM tomorrow and hopefully finally tag
+I did an SO post giving details on the array sharing question: http://stackoverflow.com/questions/43782864/is-it-safe-to-share-an-array-between-threads/43792718#43792718
+gory and again, so much better :-)
+tries to do as well, but apparently can not
+Well, some of the other answers said what to do instead, which I didn't :)
+Looks like I finally get my new hardware tomorrow. \o/
+ACTION takes an early night for a change
+good *
+you can manually run the individual stages of the compiler
+each stage is "just" a method
+hm, i don't think that's it
+you'd likely .mast and put in the qast
+and the result of that you can then feed into .mbc
+whihc, if you don't have a :output adverb, will run the code for you
+neato
+how do you feed the qast into the bot then? just as perl6 literal stuff with QAST::blah?
+it'd be kinda cool if you didn't have to write QAST:: every time, as well as .new
+you do realize it's running at all cores maxed at the moment?
+hm
+hmm?
+samcv: do you think a few of your tests are infinilooping or something?
+because two of them have over 100 hours of cpu time
+another i sat 99, one at 46, 49, 60 hours
+hmm looks like i have moar running
+you have moar than just moar running :P
+looks like it. i'll kill all the moar's
+it's dead, jim
+maybe should have it kill all of my users moar processes at the end of the script :P
+did it actually reach the end of the script?
+prolly
+we should probably put a limit into collectd so it warns if the cpu utilization has been at >95% for all cores for over 24h or so
+so we can check if anything is hanging
+https://gist.github.com/samcv/5339208c44a4d65f5165508e02dd0cee
+alternatively, put in some ulimit d)
+it got 885 modules
+:)
+on the run 3 days ago
+I thought go was fast!
+all cats are lazy
+my @pids = qqx{pgrep moar | grep -v $*PID}
+yeah if a script hangs i'll just kill all the moar scripts that aren't that one
+will changing sub to -> change anything?
+the robot's just screwing with me!
+hm
+neat.
+yeah, i kinda like that
+%)
+the module build script. sorry XD
+find me a bug to fix, bruh
+that's a lie! It also checks .x and .r!
+ACTION looks forward to repairing a tire with a screw sticking out of the tread tomorrow...
+it's been very much a hardware week here; first replacing two tiny capacitors in a power supply, then one huge capacitor in my air conditioner condenser unit
+ACTION will also have to replace the furnace controller at some point, since the old one is currently working only by yanking the connectors to one side using a rubber band, and the base of the connector the other direction by wedging in the tail of a plastic dinosaur
+(obviously a loose connection in the circuit board, but I'll just replace the whole controller, since the bits that would need resoldering are not terribly accessibly)
+but this week we only needed the cooler, so that's what died, of course
+at least our car was smart enough to tell us it was getting a flat tire, which is something...
+tirepressuremonitor++?
+guys the servers are down
+docs.perl6.org and design.perl6.org :-(
+This is Rakudo version 2017.04.3-172-gf2af3db16 built on MoarVM version 2017.04-57-g8d8a09b9
+csv-ip5xs        3.087
+test            12.789
+test-t           4.332 - 4.376
+csv-parser      13.053
+samcv: they work for me now
+docs seems back up now
+stmuk, yeah it was down and got back up like a bit ago. but i tested on those is it down websites and was down for places other than me. and were the only sites that didn't load on my laptop
+though hack.p6c.org loaded but that's on a diff server
+hmm change i made to compunit was fine until i tried to install it
+ACTION will be mostly offline until late Monday afternoon
+(JIT for next week's P6W)
+sites are back up. you can disregard that
+2 inches... is that a lot?
+Yes :P
+/win 4
+buggable++
+what are the prizes in the 'Accidental /win Lottery'?
+an irssi script that with safeguards? ;)
+but see, the robots ridicule us now, it's just a joke. Next thing, the moment you paste your nickserv identify accidentally, a bot is going to identify, ghost it, change the password and demand ransom
+oh, good idea tadzik :-)
+moritz: it could probably be well disguised as useful, rather than malicious too :) “You seem to have accidentally pasted your password. I will now keep your account secure for you, please provide a picture with a shoe on your head for verification”
+... and 0.1btc processing fee
+tell me I'm right
+Zoffix: rate limiting, maybe
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=128201
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=128201
+Zoffix: I'll pass your message to lizmat.
+i did a profile-compile of perl6 -e '' and looked at the top allocators of BOOTStrs
+i then went through and made a bunch of variables 'str' that weren't before in those routines
+the only thing that seemed to make a difference was making the `$key` parameter of `force_value` in World.nqp a str
+it reduced the total number of BOOTStr allocations from 557 to 521
+but none of my changes ever changed the BOOTStr count in a heap profile of perl6 -e ''
+thought the VMString size did go from 2,092,600 to 2,092,830
+why didn't changes to any of the other top routines make a difference?
+Heap profile as in --profile=heap?
+That is always taken after a GC
+So stuff that's allocated but thrown away shortly afterwards won't show up there
+The heap profiler isn't an allocation profiler
+It provides counts of what's being held in memory
+And kept alive by something at the time of the snapshot
+ah, i guess that would explain why i don't see so many differences in it's results
+but why not in the regular profiles?
+That I'm less sure about.
+Though
+If you write
+i.e., some of the top BOOTStr allocating routines had a couple `my $var := "string"` which i changed to `my str $var := "string"`
+my str $x := ...
+And then foo($x)
+And foo is declared
+sub foo($thing) { }
+Then it'll be boxed
+And if it's passed somewhere twice it'll be boxed twice
+So it's easy to come out worse
+hm, guess i need to follow those vars and see what's done with them
+this i odd. i just changed $scope and $decl to `str`s in compile_var ( https://github.com/perl6/nqp/blob/master/src/vm/moar/QAST/QASTCompilerMAST.nqp#L1512 ), and they aren't passed into another other routine, but profile afterwards shows 11 more BOOTStrs allocated
+give it a texas variant :)
+I see https://github.com/fayland/perl6-Business-CreditCard has a logo in the modules page; but the logo isn't mentioned in the META file. is it just assumed based on filename? Can we change that so you can specify a relative path or URL?
+looks like it just looks in the repo for logotype/logo_32x32.png (with possibly other variations)
+ah
+I would prefer that was config'able (esp. since I've never had a logotype directory in any project ever.)
+it'd be cool if you could also have an svg along the png
+(have both so that not everything that wants to display module lists has to be able to render svg)
+logos would be a nice addition to the META spec as optional ancillary info
+yeah, have a data: url in a field inside the json :P
+Zoffix: why not?
+perlpilot: maybe because we generate one big .json file from all meta jsons :)
+can't argue with that.  :)
+:D :D :D
+yikes.
+that is utterly fantastic
+a smart way to get attention for your module
+just have it take up one screen-page
+Zoffix: speaking of Trait::IO ... what's with the 5 levels of nqp::ctxcaller?
+that's a huge cock this guy has between his legs
+Zoffix: I figured it was needed.  Help me understand why  :)
+:)
+yeah, chaining operators is pretty cool
+18:35Z <[Coke]> Zoffix: please check my comment on doc pr # 1296
+Zoffix: you seem to respond in discussions I'm not talking to you in.
+But yes, commit e8ae3b is a fine way to deal with the issue, thanks.
+Zoffix: I'll pass your message to samcv.
+how very terrible is https://gist.github.com/MasterDuke17/c0718c4c09eb049f3c7ed074f03fff25 for https://rt.perl.org/Ticket/Display.html?id=112396 ?
+^^^ gives the same result as the first with the patch i gisted above
+but the conditional i added, `elsif $_.isa(QAST::Op) && $_.op eq 'ifnull' && $_[0].isa(QAST::Var) && nqp::substr($_[0].name, 0, 1) eq '&' {`, doesn't seem all that elegant
+i never .isa
+and nqp::eqat is way better than substr + eq
+moritz, masak, jnthn: pinging you guys since your conversation is what prompted the ticket
+MasterDuke_: I don't know if we paint ourselves into a proverbial corner if we special-case that. Maybe a better error message would be the safer solution
+but I don't feel very strongly either way
+moritz: https://www.youtube.com/watch?v=ussCHoQttyQ
+i could alway stick the conditional i added into the error branch and add something like `. Did you mean 'sub()'?` if true
+just taking your previous m: and showing what happens if you use $x instead of &x - if you're suggesting that is LTA somehow, this is a similar thing to consider.
+TimToady: do you have an opinion on the feed question?
+Unicode hack of the: https://www.reddit.com/r/rust/comments/5penft/parallelizing_enjarify_in_go_and_rust/dcsgk7n/
+*of the day
+MasterDuke_: The comment in RT #112396 about STD having accepted it doesn't really seem to be relevant, in so far as it can be valid syntax but not valid semantics. :)
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=112396
+Which is in fact what the push error is about
+The report is kinda amusing
+Uses feed operator
+Gets error that makes sense if you know they push on to variables
+Says it's LTA
+Notes doesn't know anything about feed operators :P
+But yeah, I think we could probably say that anything with an & sigil is very unlikely to be a push target
+I don't think magically turning a noun into a verb is the right way to go, though
+ACTION agrees
+I could live with spotting the & sigil and giving an error suggesting probable confusion
+k
+ACTION notes that a $ will auto-viv to an array on push, an @ will be an array and so work, and a % also has a push method
+I'd never really thought about sticking a hash at the end of a feed operator but thanks to Hash.push it probably does something useful and sensible :-)
+jnthn: would you say that in fact verbing weirds nouns?
+Zoffix: Thought you might enjoy that :)
+MasterDuke_: What? :-)
+jnthn: an attempt at making a joke about your statement turning a noun into a verb isn't right. "verbing weirds nouns" is a quote from Calvin & Hobbes
+MasterDuke_: Ah, I didn't know the reference. :-) But I'm not into prescriptivisting, so I don't think it weirds them at all. :-)
+note that even English has to use "ing" and "s" to do that, which is equivalent to requiring () in Perl 6
+how does this look: `perl6 -e '3 ==> &sin ==> &say'` locally prints `Sorry, do not know how to handle this case of a feed operator yet. Did you mean '&sin()'?`
+It's a bit of a lie 'cus we do we know exactly what case it is. :)
+just replace the message?
+Yeah
+"A feed may not sink values into a code object. Did you mean to a call like 'sin()' instead?"
+oops
+"A feed may not sink values into a code object. Did you mean a call like 'sin()' instead?"
+while i'm at it, any reason not to stick some info about the object in the message in the usual case? like the QAST type?
+oh, and the error says the first thing in the feed, but the caret always points to the EOL, any way to fix that?
+I don't think QAST nodes mean anything to the typical user
+Maybe we'd be better enumerating what is allowed since there aren't many options :)
+The caret can usually be got righter by calling .panic/.sorry or whatever on a more appropriate match object
+Rather than just $/
+"Sorry, do not know how to handle this case of a feed operator yet. Only routine calls and variables with a '.push' are allowed." ?
+Seems like an improvement
+variables that can '.push'?
+Guess that is shorter and says just as push
+*just as much
+that was a little unclear. this is what i currently have added: "Only routine calls and variables that can '.push' are allowed."
+but it could be "Sorry, do not know how to handle this case of a feed operator yet, only routine calls and variables that can '.push'"
+I think the second , would want to be a ; if we do that
+Oh, wait :)
+Maybe the "yet" should go away too
+In that there's more wrong things you can write than NYI things
+Could just say something like "Only routine calls or variables that can '.push' may appear either side of feed operators."
+cool, will put that
+the .panic is currently called on the same $/ that's passed into make_feed()
+but inside it loops over "stages" of $/<infix><sym>
+and working on the .ast
+any way to get back at the appropriate part of the $/ other than keeping a parallel array around?
+the thing it gets the .ast from for the stage will be a match object
+yeah, but it sticks the .ast in @stages and then loops over that to do the work
+Oh
+Can we maybe just stick the original thing in @stages and then call .ast on it in the loop?
+s/original thing/match/
+yeah, probably, i'll give it a shot
+hmm maybe the rewriting isn' working? though for now we can maybe make the pages end in .html for every page that has a dot in the name? hm
+you aren't supposed to end a domain name with a period though
+domain names ought to be like .org.perl6.www
+22:28Z <samcv> Zoffix: dunno about the docs. when i checked before it was all fine. i'm curious what the files on the server are called?
+22:28Z <samcv> Zoffix: page works https://docs.perl6.org/routine/...html it just needs .html to be at the end
+Zoffix, it's now reported https://github.com/perl6/doc/issues/1298
+timotimo, that would be nice
+we can just use .html?
+hm
+also Zoffix it's only ones that end in a period
+anywhere else is fine
+i mean the page is still at that point
+anything else broken Zoffix ?
+i think i'm gonna try and fix it right now
+ok great thanks
+ok working on now
+hm, after some interruptions retooled make_feed to .ast the parts in the loop that works on them, but calling $_.panic() (instead of $/.panic) still puts the caret at the EOL
+there's at least some thought that phasers should work in grep. https://rt.perl.org/Ticket/Display.html?id=131060
+ok new atom-language-perl6 release. regex highlighting fixes
+yeah that's the same thing
+yeah bduggan posted a link to that on my ticket
+good grief
+exactly!
+oh no
+what's it doing? this is diff from the URL problem right? we're talking about Pod::To::BigPage
+eek
+the horizontal scrolling in that document is the worst thing i've ever seen in a html site
+Zoffix: I'll pass your message to TimToady.
+This is Rakudo version 2017.04.3-173-g5e6b38789 built on MoarVM version 2017.04-57-g8d8a09b9
+csv-ip5xs        3.227
+test            12.861
+test-t           4.319 - 4.361
+csv-parser      13.275
+and so do pages that end with URI percent encoding, cause that was messed up too if it percent encoded and that was the very last thing in url
+not sure what the server setup is to access .html files without .html
+that infini-recurses?
+yup
+will fix a gist
+can't see why it should recurse though
+heh, my 'p MVM_dump_backtrace' recurses as well with a gazillion 'from SETTING::src/core/Numeric.pm:191  (./CORE.setting.moarvm:infix:<+>)'
+the original report points out that instantiating an abstract class is a bad idea. RT #126112
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=126112
+ACTION wonders what the proper way to fix this might be
+timotimo: are you still around?
+where can I find the src for 'nqp::unbox_n'? Using grep hasn't been particulary successful.
+to be more specific, I'm looking for the code which makes this rounding
+i.e. RT #127184
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=127184
+dogbert17: try MoarVM/src/6model/reprs/P6num.c:56:
+.
+hi MasterDuke_ & lizmat
+dig o/
+dogbert17 :-)
+do you think that RT #127184 should be fixed?
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=127184
+dogbert17: I would say yes
+dogbert17: ^^^ feels troublesome, so yes,  :-)
+hoping it's some kind of LHF but I'm often horribly wrong about things like that :)
+perhaps it's as easy as changing a printf somewhere  :-)
+that's what I was hoping :)
+13:53Z <lizmat> Zoffix: it feels to me that you fixed the problem by making things unnecessarily eager
+not sure yet, pretty distracted at the moment  :-)
+Zoffix: okidoki  :-)
+lizmat: any idea where to look for this 'printf'?
+dogbert17: sadly, no
+Zoffix, that should be fixed. by the latest commit.
+ACTION finds it difficult to navigate the sources
+so not sure why it's not working
+dogbert17: you might have better luck following the p6box_s
+MasterDuke_: thx, I'll give it a shot
+i think the unbox_n is just giving you the num, and the p6box_s is stringifying it
+cool, let's see if that makes finding things easier
+yes it has code to do that right now. i'm going to try altering it slightly
+hmm, no trace of it in nqp/src nor in MoarVM/src
+dogbert17: the p6* ops are in rakudo
+Zoffix: looking at RT #127184
+Link:  https://rt.perl.org/rt3/Public/Bug/Display.html?id=127184
+MasterDuke_: perhaps src/vm/moar/ops/perl6_ops.c might be the place then
+yep, turns out it just calls MVM_repr_box_str though
+might that be found in src/6model/reprconv.c
+the plot thickens
+`#define GET_REG(tc, idx)    (*tc->interp_reg_base)[*((MVMuint16 *)(cur_op + idx))]`, so it's using the cur_op
+Zoffix: perhaps this is not a LHF as I was hoping
+:)
+?
+ACTION fixes a pot of coffee
