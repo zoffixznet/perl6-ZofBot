@@ -25,7 +25,7 @@ class ZofBot::Info {
     :nick<ZofBot>,
     :username<zofbot-zofbot>,
     :host(%*ENV<ZOFBOT_IRC_HOST> // 'irc.freenode.net'),
-    :channels( %*ENV<ZOFBOT_DEBUG> ?? '#zofbot' !! |<#perl6 #perl6-dev  #moarvm  #zofbot>),
+    :channels( %*ENV<ZOFBOT_DEBUG> ?? '#zofbot' !! |<#perl6 #perl6-dev  #moarvm  #zofbot  #perl6-toolchain>),
 #    |(:password(conf<irc-pass>)
  #       if conf<irc-pass> and not %*ENV<BUGGABLE_DEBUG>
   #  ),
