@@ -8,7 +8,8 @@
         "JSON::Fast",
         "HTTP::UserAgent",
         "URI::Escape",
-        "Text::Markov"
+        "Text::Markov",
+        "Twitter"
     ],
     "test-depends" : [
         "Test"
