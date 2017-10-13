@@ -15,6 +15,7 @@ my Regex   $mention-regex = rx:i/«[
     | IOninja       | IOninja_       | IOninja__       | IOninja___
     | brokenchicken | brokenchicken_ | brokenchicken__ | brokenchicken___
     | eveo          | 'eveo-'        | 'eveo--'
+    | lollercopter  | DeadDelta
 ]»/;
 
 subset AdminMessage where {.host ∈ $admin-list};
