@@ -78,5 +78,5 @@ method !set-new-reminder ($_) {
         or return 'Cannot use empty reminder';
 
     Rem.new(:$when, :$what).save.schedule($.irc);
-    return "Will remind out on $when.DateTime().local() about $what";
+    return "Will remind you on $when.DateTime().local() about $what";
 }
