@@ -9,6 +9,7 @@
         "HTTP::UserAgent",
         "URI::Escape",
         "Text::Markov",
+        "OO::Monitors",
         "Twitter"
     ],
     "test-depends" : [
