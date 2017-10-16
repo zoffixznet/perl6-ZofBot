@@ -6,6 +6,11 @@ use OO::Monitors;
 my IO::Path $db-file         =  conf<reminder-db-file>.IO;
 my SetHash $admin-list .= new: |conf<admin-list>;
 subset AdminMessage where {.host ∈ $admin-list};
+my $Reminder-New-RE = /:i ^
+    \s* rem \s* new \s+
+        $<when>=($<v>=[\d+ ['.'\d+]?] $<mult>=<[shdwmM]>)+
+    \s+ $<what>=.+
+/;
 
 my class Rem { … }
 my $db := my monitor Db {
@@ -56,18 +61,18 @@ method irc-started {
     }
 }
 
-multi method irc-to-me (AdminMessage $ where /:i ^
-    \s* rem \s* new \s+
-        $<when>=($<v>=[\d+ [.\d+]?] $<mult>=<[shdwmM]>)+
-    \s+ $<what>=.+
-/) {
-    my $when = now + $<when>.map({
+
+multi method irc-to-me     ($ where $Reminder-New-RE) { self!set-new-reminder: $/ }
+multi method irc-addressed ($ where $Reminder-New-RE) { self!set-new-reminder: $/ }
+
+method !set-new-reminder ($_) {
+    my $when = now + .<when>.map({
         .<v> * ({
             :1s, :60m, :3600h, :d(3600*24), :w(3600*24*7), :M(3600*24*30)
         }{.<mult>} // return 'Invalid time specifier. Use s, m, h, d, w, or M')
     }).sum;
 
-    (my $what = ~$<what>).match: /\S/
+    (my $what = ~.<what>).match: /\S/
         or return 'Cannot use empty reminder';
 
     Rem.new(:$when, :$what).save.schedule($.irc);
