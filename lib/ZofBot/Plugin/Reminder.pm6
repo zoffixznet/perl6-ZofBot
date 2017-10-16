@@ -63,8 +63,9 @@ method irc-started {
 }
 
 
-multi method irc-to-me     (AdminMessage $ where $Reminder-New-RE) { self!set-new-reminder: $/ }
-multi method irc-addressed (AdminMessage $ where $Reminder-New-RE) { self!set-new-reminder: $/ }
+multi method irc-to-me           (AdminMessage $ where $Reminder-New-RE) { self!set-new-reminder: $/ }
+multi method irc-addressed       (AdminMessage $ where $Reminder-New-RE) { self!set-new-reminder: $/ }
+multi method irc-privmsg-channel (AdminMessage $ where $Reminder-New-RE) { self!set-new-reminder: $/ }
 
 method !set-new-reminder ($_) {
     my $when = now + .<when>.map({
