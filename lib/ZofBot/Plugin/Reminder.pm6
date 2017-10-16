@@ -23,9 +23,9 @@ my $db := my monitor Db {
         my Set $to-toss := set $!file.lines.grep(
             *.ends-with: "\x[0]1"
         ).map(*.substr: 0, *-2);
-        $!file.spurt: $!file.lines.grep({
+        $!file.spurt: ($!file.lines.grep({
             not *.ends-with: "\x[0]1" and not $to-toss{$_}
-        }).join: "\n";
+        }).join: "\n")~"\n";
     }
     method lines { eager $!file.lines }
 }.new: :file($db-file);
