@@ -24,7 +24,8 @@ my $db := my monitor Db {
             *.ends-with: "\x[0]1"
         ).map(*.substr: 0, *-2);
         $!file.spurt: ($!file.lines.grep({
-            not *.ends-with: "\x[0]1" and not $to-toss{$_}
+            .chars and not *.ends-with: "\x[0]1"
+                   and not $to-toss{$_}
         }).join: "\n")~"\n";
     }
     method lines { eager $!file.lines }
