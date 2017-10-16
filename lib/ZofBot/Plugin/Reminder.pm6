@@ -7,8 +7,7 @@ my IO::Path $db-file         =  conf<reminder-db-file>.IO;
 my SetHash $admin-list .= new: |conf<admin-list>;
 subset AdminMessage where {.host ∈ $admin-list};
 my $Reminder-New-RE = /:i ^
-    \s* rem \s* new \s+
-        $<when>=($<v>=[\d+ ['.'\d+]?] $<mult>=<[shdwmM]>)+
+    \s* '|' $<when>=($<v>=[\d+ ['.'\d+]?] $<mult>=<[shdwmM]>)+
     \s+ $<what>=.+
 /;
 
@@ -64,8 +63,8 @@ method irc-started {
 }
 
 
-multi method irc-to-me     ($ where $Reminder-New-RE) { self!set-new-reminder: $/ }
-multi method irc-addressed ($ where $Reminder-New-RE) { self!set-new-reminder: $/ }
+multi method irc-to-me     (AdminMessage $ where $Reminder-New-RE) { self!set-new-reminder: $/ }
+multi method irc-addressed (AdminMessage $ where $Reminder-New-RE) { self!set-new-reminder: $/ }
 
 method !set-new-reminder ($_) {
     my $when = now + .<when>.map({
