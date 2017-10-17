@@ -8,7 +8,7 @@ my $Brain = do with Text::Markov.new(:10order) -> $b {
     $b
 }
 
-multi method irc-addressed ($e where .channel eq '#perl6-dev'|'#zofbot') {
+multi method irc-addressed ($e where {.?channel eq '#perl6-dev'|'#zofbot' or .?nick eq 'Zoffix'}) {
     feed-brain $e.text.trim;
     $Brain.read.substr(0, 300).subst(:g, /\s+/, ' ').trim;
 }
