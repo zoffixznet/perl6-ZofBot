@@ -21,7 +21,8 @@ my Regex   $mention-regex = rx:i/«[
 subset AdminMessage where {.host ∈ $admin-list};
 subset ZoffixMention where {
     $is-tweeting
-    and (now - $seen > 10*60 or (.?channel||'') eq '#perl6')
+    and (now - $seen > 10*60 or (.?channel||'') eq '#perl6'
+      and (.?channel||'') ne '#zofbot')
     and $_ ~~ $mention-regex
     and .nick ∉ $ignore-list;
 }

@@ -1,4 +1,5 @@
-unit class ZofBot::Plugin::AI;
+use IRC::Client;
+unit class ZofBot::Plugin::AI does IRC::Client::Plugin;
 use ZofBot::Config;
 use Text::Markov;
 
@@ -15,7 +16,7 @@ multi method irc-addressed ($e where {.?channel eq '#perl6-dev'|'#zofbot' or .?n
 
 multi method irc-privmsg-channel ($e where .channel eq '#perl6-dev'|'#zofbot') {
     feed-brain $e.text.trim;
-    Nil;
+    $.NEXT;
 }
 
 sub feed-brain ($text) {

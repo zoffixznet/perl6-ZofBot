@@ -1,11 +1,13 @@
 unit class ZofBot::Plugin::Tau;
 use Games::TauStation::DateTime;
+use Number::Denominate;
 
 multi method irc-to-me ($ where /^ :i gct \s* $<gct>=.+/ ) {
-    with (try GCT.new: ~$<gct>) {
-        .gist;
+    my $gtc := $<gct>.Str.lc.trim.ends-with('gct') ?? ~$<gct> !! "$<gct> GCT";
+    with (try GCT.new: $gtc) {
+        "{.OE}; which is {denominate (.Instant - now).Rat} from now"
     }
     else {
-        "Failed to parse GCT time: $!.message()"
+        "Failed to parse GCT time: $!.message().trans("\n" => "␤")"
     }
 }

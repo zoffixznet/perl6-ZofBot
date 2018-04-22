@@ -34,5 +34,5 @@ class ZofBot::Info {
         ZofBot::Info.new,
         ZofBot::Plugin::Tau.new,
         ZofBot::Plugin::Twitter.new,
-#        ZofBot::Plugin::AI.new,
+        # ZofBot::Plugin::AI.new,
     );
