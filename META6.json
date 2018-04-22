@@ -9,6 +9,7 @@
         "HTTP::UserAgent",
         "URI::Escape",
         "Text::Markov",
+        "Games::TauStation::DateTime",
         "OO::Monitors",
         "Twitter"
     ],
