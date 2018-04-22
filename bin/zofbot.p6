@@ -1,12 +1,9 @@
 #!/usr/bin/env perl6
-use lib <
-    /home/zoffix/CPANPRC/IRC-Client/lib
-    /home/zoffix/services/lib/IRC-Client/lib
-    lib
->;
+use lib <lib>;
 
 use IRC::Client;
 use ZofBot::Plugin::AI;
+use ZofBot::Plugin::Tau;
 use ZofBot::Plugin::IgnoreList;
 use ZofBot::Plugin::Reminder;
 use ZofBot::Plugin::Twitter;
@@ -35,6 +32,7 @@ class ZofBot::Info {
         ZofBot::Plugin::Reminder.new,
         ZofBot::Plugin::IgnoreList.new,
         ZofBot::Info.new,
+        ZofBot::Plugin::Tau.new,
         ZofBot::Plugin::Twitter.new,
-        ZofBot::Plugin::AI.new,
+#        ZofBot::Plugin::AI.new,
     );
