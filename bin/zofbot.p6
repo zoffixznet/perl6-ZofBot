@@ -25,7 +25,7 @@ class ZofBot::Info {
     :host(%*ENV<ZOFBOT_IRC_HOST> // 'irc.freenode.net'),
     :channels( %*ENV<ZOFBOT_DEBUG> ?? '#zofbot' !! |<#perl6 #perl6-dev  #moarvm  #zofbot  #perl6-toolchain>),
    |(:password(conf<irc-pass>)
-       if conf<irc-pass> and not %*ENV<BUGGABLE_DEBUG>
+       if conf<irc-pass> and not %*ENV<ZOFBOT_DEBUG>
    ),
     :debug,
     :plugins(
@@ -34,5 +34,5 @@ class ZofBot::Info {
         ZofBot::Info.new,
         ZofBot::Plugin::Tau.new,
         ZofBot::Plugin::Twitter.new,
-        # ZofBot::Plugin::AI.new,
+#        ZofBot::Plugin::AI.new,
     );
