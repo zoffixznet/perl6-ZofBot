@@ -41,7 +41,7 @@ multi method irc-privmsg-channel (
 multi method irc-privmsg-channel (ZoffixMention $e) {
     my $text = "{$e.channel} <{$e.nick}> $e";
     say "Tweeting `$text`";
-    $.irc.send: :where<Zoffix> :text("[M] $text");
+    $e.irc.send: :where<Zoffix> :text("[M] $text");
     #  $!twitter.direct-message: $text, :name($!tweet-to);
     Nil;
 }
